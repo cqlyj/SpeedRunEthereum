@@ -10,7 +10,7 @@ contract Staker {
 	ExampleExternalContract public exampleExternalContract;
 	mapping(address => uint256) public balances;
 	uint256 public constant threshold = 1000000000000000000; // 1 ETH
-	uint256 public deadline = block.timestamp + 30 seconds;
+	uint256 public deadline = block.timestamp + 72 hours;
 	bool openForWithdraw = false;
 
 	constructor(address exampleExternalContractAddress) {
