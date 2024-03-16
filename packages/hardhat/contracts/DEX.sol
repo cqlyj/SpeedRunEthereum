@@ -89,11 +89,8 @@ contract DEX {
 		uint256 yReserves
 	) public pure returns (uint256 yOutput) {
 		uint256 xInputWithFee = (xInput * 997) / 1000;
-		yOutput =
-			yReserves -
-			(xReserves * yReserves) /
-			(xReserves + xInputWithFee);
-		return yOutput;
+		yOutput = (xReserves * yReserves) / (xReserves + xInputWithFee);
+		return yReserves - yOutput - 1;
 	}
 
 	/**
@@ -109,14 +106,38 @@ contract DEX {
 	/**
 	 * @notice sends Ether to DEX in exchange for $BAL
 	 */
-	function ethToToken() public payable returns (uint256 tokenOutput) {}
+	function ethToToken() public payable returns (uint256 tokenOutput) {
+		require(msg.value > 0, "Must send Ether to swap for tokens");
+		uint256 ethReserves = address(this).balance - msg.value;
+		uint256 tokenReserves = token.balanceOf(address(this));
+		tokenOutput = price(msg.value, ethReserves, tokenReserves);
+		require(
+			token.transfer(msg.sender, tokenOutput),
+			"Token transfer failed"
+		);
+		emit EthToTokenSwap(msg.sender, tokenOutput, msg.value);
+		return tokenOutput;
+	}
 
 	/**
 	 * @notice sends $BAL tokens to DEX in exchange for Ether
 	 */
-	function tokenToEth(
-		uint256 tokenInput
-	) public returns (uint256 ethOutput) {}
+	function tokenToEth(uint256 tokenInput) public returns (uint256 ethOutput) {
+		require(tokenInput > 0, "Must send tokens to swap for Ether");
+		ethOutput = price(
+			tokenInput,
+			token.balanceOf(address(this)),
+			address(this).balance
+		);
+		require(
+			token.transferFrom(msg.sender, address(this), tokenInput),
+			"Token transfer failed"
+		);
+		(bool success, ) = msg.sender.call{ value: ethOutput }("");
+		require(success, "Transfer failed.");
+		emit TokenToEthSwap(msg.sender, tokenInput, ethOutput);
+		return ethOutput;
+	}
 
 	/**
 	 * @notice allows deposits of $BAL and $ETH to liquidity pool
