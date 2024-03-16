@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     Balloons: {
-      address: "0x276C216D241856199A83bf27b2286659e5b877D3",
+      address: "0xB377a2EeD7566Ac9fCb0BA673604F9BF875e2Bab",
       abi: [
         {
           inputs: [],
@@ -300,7 +300,7 @@ const deployedContracts = {
       },
     },
     DEX: {
-      address: "0x3aAde2dCD2Df6a8cAc689EE797591b2913658659",
+      address: "0x66F625B8c4c635af8b74ECe2d7eD0D58b4af3C3d",
       abi: [
         {
           inputs: [

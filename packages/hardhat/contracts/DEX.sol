@@ -72,7 +72,6 @@ contract DEX {
 	 * NOTE: since ratio is 1:1, this is fine to initialize the totalLiquidity (wrt to balloons) as equal to eth balance of contract.
 	 */
 	function init(uint256 tokens) public payable returns (uint256) {
-		totalLiquidity = address(this).balance;
 		token.transferFrom(msg.sender, address(this), tokens);
 		liquidity[msg.sender] = tokens;
 		totalLiquidity += tokens;
@@ -145,7 +144,26 @@ contract DEX {
 	 * NOTE: user has to make sure to give DEX approval to spend their tokens on their behalf by calling approve function prior to this function call.
 	 * NOTE: Equal parts of both assets will be removed from the user's wallet with respect to the price outlined by the AMM.
 	 */
-	function deposit() public payable returns (uint256 tokensDeposited) {}
+	function deposit() public payable returns (uint256 tokensDeposited) {
+		require(msg.value > 0, "Must send Ether to deposit");
+		uint256 ethReserves = address(this).balance - msg.value;
+		uint256 tokenReserves = token.balanceOf(address(this));
+		uint256 tokenDeposit = ((msg.value * tokenReserves) / ethReserves) + 1;
+		uint256 liquidityMinted = (msg.value * totalLiquidity) / ethReserves;
+		liquidity[msg.sender] += liquidityMinted;
+		totalLiquidity += liquidityMinted;
+		require(
+			token.transferFrom(msg.sender, address(this), tokenDeposit),
+			"Token transfer failed"
+		);
+		emit LiquidityProvided(
+			msg.sender,
+			liquidityMinted,
+			msg.value,
+			tokenDeposit
+		);
+		return tokenDeposit;
+	}
 
 	/**
 	 * @notice allows withdrawal of $BAL and $ETH from liquidity pool
@@ -153,5 +171,25 @@ contract DEX {
 	 */
 	function withdraw(
 		uint256 amount
-	) public returns (uint256 eth_amount, uint256 token_amount) {}
+	) public returns (uint256 eth_amount, uint256 token_amount) {
+		require(amount > 0, "Must withdraw at least 1 LPT");
+		require(
+			liquidity[msg.sender] >= amount,
+			"Insufficient liquidity to withdraw"
+		);
+		uint256 ethReserves = address(this).balance;
+		uint256 tokenReserves = token.balanceOf(address(this));
+		uint256 ethWithdrawn = (amount * ethReserves) / totalLiquidity;
+		uint256 tokenAmount = (amount * tokenReserves) / totalLiquidity;
+		liquidity[msg.sender] -= amount;
+		totalLiquidity -= amount;
+		(bool success, ) = payable(msg.sender).call{ value: ethWithdrawn }("");
+		require(success, "Transfer failed.");
+		require(
+			token.transfer(msg.sender, tokenAmount),
+			"Token transfer failed"
+		);
+		emit LiquidityRemoved(msg.sender, amount, tokenAmount, ethWithdrawn);
+		return (ethWithdrawn, tokenAmount);
+	}
 }
