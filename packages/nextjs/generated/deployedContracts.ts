@@ -5,7 +5,7 @@ const contracts = {
       name: "localhost",
       contracts: {
         Streamer: {
-          address: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+          address: "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
           abi: [
             {
               anonymous: false,
