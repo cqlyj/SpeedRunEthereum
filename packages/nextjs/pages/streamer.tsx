@@ -140,6 +140,10 @@ const Streamer: NextPage = () => {
         return;
       }
       const existingVoucher = vouchers[clientAddress];
+      //modified to prevent continued service to clients who don't keep up with their payments
+      if (existingVoucher !== undefined && updatedBalance > existingVoucher.updatedBalance) {
+        return;
+      }
 
       // update our stored voucher if this new one is more valuable
       if (existingVoucher === undefined || updatedBalance < existingVoucher.updatedBalance) {
@@ -358,13 +362,13 @@ const Streamer: NextPage = () => {
                     </div>
 
                     {/* Checkpoint 4: */}
-                    {/* <CashOutVoucherButton
+                    <CashOutVoucherButton
                       key={clientAddress}
                       clientAddress={clientAddress}
                       challenged={challenged}
                       closed={closed}
                       voucher={vouchers[clientAddress]}
-                    /> */}
+                    />
                   </div>
                 ))}
               </div>

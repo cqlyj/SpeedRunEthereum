@@ -35,7 +35,7 @@ contract Streamer is Ownable {
 		return canCloseAt[channel] - block.timestamp;
 	}
 
-	function withdrawEarnings(Voucher calldata voucher) public {
+	function withdrawEarnings(Voucher calldata voucher) public onlyOwner {
 		// like the off-chain code, signatures are applied to the hash of the data
 		// instead of the raw data itself
 		bytes32 hashed = keccak256(abi.encode(voucher.updatedBalance));
@@ -65,6 +65,20 @@ contract Streamer is Ownable {
           - adjust the channel balance, and pay the Guru(Contract owner). Get the owner address with the `owner()` function.
           - emit the Withdrawn event
     */
+		address signer = ecrecover(
+			prefixedHashed,
+			voucher.sig.v,
+			voucher.sig.r,
+			voucher.sig.s
+		);
+		require(
+			balances[signer] > voucher.updatedBalance,
+			"Insufficient balance"
+		);
+		uint256 payment = balances[signer] - voucher.updatedBalance;
+		balances[signer] = voucher.updatedBalance;
+		payable(owner()).transfer(payment);
+		emit Withdrawn(signer, payment);
 	}
 
 	/*
