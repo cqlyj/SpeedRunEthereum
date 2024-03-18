@@ -127,6 +127,18 @@ const Streamer: NextPage = () => {
        *  and then use verifyMessage() to confirm that voucher signer was
        *  `clientAddress`. (If it wasn't, log some error message and return).
        */
+      const packed = encodePacked(["uint256"], [updatedBalance]);
+      const hashed = keccak256(packed);
+      const arrayified = toBytes(hashed);
+      const signer = verifyMessage({
+        address: clientAddress,
+        message: arrayified.toString(), // Convert Uint8Array to string
+        signature: data.signature,
+      });
+      if ((await signer.toString()) !== clientAddress) {
+        console.error(`Invalid signature from ${clientAddress}`);
+        return;
+      }
       const existingVoucher = vouchers[clientAddress];
 
       // update our stored voucher if this new one is more valuable
