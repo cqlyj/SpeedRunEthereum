@@ -89,6 +89,11 @@ contract Streamer is Ownable {
     - updates canCloseAt[msg.sender] to some future time
     - emits a Challenged event
   */
+	function challengeChannel() public {
+		require(balances[msg.sender] > 0, "No open channel");
+		canCloseAt[msg.sender] = block.timestamp + 30 seconds;
+		emit Challenged(msg.sender);
+	}
 
 	/*
     Checkpoint 5b: Close the channel
@@ -99,6 +104,13 @@ contract Streamer is Ownable {
     - sends the channel's remaining funds to msg.sender, and sets the balance to 0
     - emits the Closed event
   */
+	function defundChannel() public {
+		require(canCloseAt[msg.sender] > 0, "No closing channel");
+		require(block.timestamp > canCloseAt[msg.sender], "Channel not closed");
+		payable(msg.sender).transfer(balances[msg.sender]);
+		balances[msg.sender] = 0;
+		emit Closed(msg.sender);
+	}
 
 	struct Voucher {
 		uint256 updatedBalance;

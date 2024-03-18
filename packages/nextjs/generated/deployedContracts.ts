@@ -5,7 +5,7 @@ const contracts = {
       name: "localhost",
       contracts: {
         Streamer: {
-          address: "0x851356ae760d987E095750cCeb3bC6014560891C",
+          address: "0x70e0bA845a1A0F2DA3359C97E0285013525FFC49",
           abi: [
             {
               anonymous: false,
@@ -89,6 +89,20 @@ const contracts = {
               ],
               name: "Withdrawn",
               type: "event",
+            },
+            {
+              inputs: [],
+              name: "challengeChannel",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "defundChannel",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
             },
             {
               inputs: [],
